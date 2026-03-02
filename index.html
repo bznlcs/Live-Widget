@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Localização Firebase</title>
+  <style>
+    /* Mesmo CSS anterior */
+  </style>
+</head>
+<body>
+  <div id="location-container">
+    <div class="icon">🌍</div>
+    <div class="status">Conectando...</div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+  
+  <script>
+    // CONFIGURE SEU FIREBASE AQUI
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU-PROJETO.firebaseapp.com",
+      databaseURL: "https://SEU-PROJETO.firebaseio.com",
+      projectId: "SEU-PROJETO"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    database.ref('location').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const lat = data.lat;
+        const lon = data.lon;
+        
+        // Buscar nome do local
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat={lon}`)
+          .then(res => res.json())
+          .then(location => {
+            const addr = location.address;
+            const bairro = addr.suburb || addr.neighbourhood || 'Localização';
+            const cidade = addr.city || addr.town || 'Atual';
+            
+            document.getElementById('location-container').innerHTML = 
+              '<div class="icon">📍</div>' +
+              '<div class="location-name">' + bairro + ', ' + cidade + '</div>' +
+              '<div class="coords">GPS: ' + lat.toFixed(5) + ', ' + lon.toFixed(5) + '</div>';
+          });
+      }
+    });
+  </script>
+</body>
+</html>
